@@ -24,30 +24,34 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
     def menu():# definition du menu : choix permCo parcours ou rdv
         Clear()
-        bt1=Button(fenetre, text="Permanence connecté", command= Permco, bg  = "darkorange2")
+        bt1=Button(fenetre, text="Permanence connecté", command=partial(Permco, False, None), bg  = "darkorange2")
         bt1['font'] = font.Font(size=20)
         bt1.pack(pady = 20)
-        bt2=Button(fenetre, text="Parcours d'initiation", command= parcours, bg  = "darkgoldenrod1")
+        bt2=Button(fenetre, text="Parcours d'initiation", command =partial(parcours, False, None), bg  = "darkgoldenrod1")
         bt2['font'] = font.Font(size=20)
         bt2.pack(pady = 20)
-        bt3=Button(fenetre, text="Rendez-vous", command= RDV, bg  = "cadetblue2")
+        bt3=Button(fenetre, text="Rendez-vous", command=partial(RDV, False, None), bg  = "cadetblue2")
         bt3['font'] = font.Font(size=20)
         bt3.pack(pady = 20)
         bt4=Button(fenetre, text="PUB", command= RDV, bg  = "crimson")
         bt4['font'] = font.Font(size=20)
         bt4.pack(pady = 20)
 
-    def Permco(): #fonction appeller par le bouton permco du menu : gestion de tout les contacts permco
-        label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
-        label['font'] = font.Font(size=20)
-        label.place(x=550, y=400, anchor="center")
-        fenetre.update()
-        filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
-        print(filepath)
+    def Permco(mod, file): #fonction appeller par le bouton permco du menu : gestion de tout les contacts permco
+        if mod :
+            filepath = file
+        else :
+            label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
+            label['font'] = font.Font(size=20)
+            label.place(x=550, y=400, anchor="center")
+            fenetre.update()
+            filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
+            print(filepath)
+            label.destroy()
         wb = load_workbook(filename = filepath)
         sheet_ranges = wb['Rappels pour participants lende']
         print(sheet_ranges['H18'].value)
-        label.destroy()
+
         root.geometry('1500x850')
         fenetre.width = 1500
 
@@ -70,14 +74,17 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             else :
                 return(False)
 
-        def check(row): #basculement de létat du contact lorsqu'il est checker pour faire suivre l'envoie des sms
+        def check(row): #basculement de l'état du contact lorsqu'il est checker pour faire suivre l'envoie des sms
             print("execute")
-            if sheet_ranges['Z'+ str(row)].value == None:
+            print(sheet_ranges['Z'+ str(row)].value)
+            if sheet_ranges['Z'+ str(row)].value != True:
                 sheet_ranges['Z'+ str(row)].value = True
-            elif sheet_ranges['Z'+ str(row)].value == True:
-                sheet_ranges['Z'+ str(row)].value = False
+            elif sheet_ranges['Z'+ str(row)].value != None:
+                sheet_ranges['Z'+ str(row)].value = None
             else :
-                sheet_ranges['Z'+ str(row)].value = False
+                sheet_ranges['Z'+ str(row)].value = None
+            print(sheet_ranges['Z'+ str(row)].value)
+            wb.save(filepath)
 
         def sendSMS(): #envoi des sms aux contacts checker
             row_1 = 1
@@ -117,7 +124,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             print(entre.get())
             sheet_ranges['I'+ str(row)] =  entre.get()
             wb.save(filename = filepath)
-            Permco()
+            Permco(True, filepath)
         def modif(row): #page de modif du numéro de téléphone lorsque incorrect
             Clear()
             label = Label(fenetre, text = "Modifier Numéro :", bg ="darkgoldenrod1")
@@ -128,7 +135,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             entree = Entry(fenetre, textvariable=vallue,bd = 10, width=30)
             entree['font'] = font.Font(size=20)
             entree.place(x=10, y=100)
-            bt1=Button(fenetre, text="ANNULER", command= Permco, bg = "cyan3")
+            bt1=Button(fenetre, text="ANNULER", command= partial(Permco, True, filepath), bg = "cyan3")
             bt1['font'] = font.Font(size=20)
             bt1.place(x=10, y=180)
             bt2=Button(fenetre, text="VALIDER", command= partial(valider, row, entree), bg = "cyan3")
@@ -192,7 +199,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             Label(frame,text=str(sheet_ranges['K'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=5, padx = 10)
             if checknum(row_1) == True :
                 Label(frame,text=str(sheet_ranges['I'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=2, padx = 10)
-                if sheet_ranges['Z'+ str(row_1)].value == True:
+                if sheet_ranges['Z'+ str(row_1)].value != None:
                    btn= Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3')
                    btn.select()
                    btn.grid(row=i,column=6, padx = 10)
@@ -248,12 +255,15 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         def check(row): #basculement de létat du contact lorsqu'il est checker pour faire suivre l'envoie des sms
             print("execute")
-            if sheet_ranges['Z'+ str(row)].value == None:
+            print(sheet_ranges['Z'+ str(row)].value)
+            if sheet_ranges['Z'+ str(row)].value != True:
                 sheet_ranges['Z'+ str(row)].value = True
-            elif sheet_ranges['Z'+ str(row)].value == True:
-                sheet_ranges['Z'+ str(row)].value = False
+            elif sheet_ranges['Z'+ str(row)].value != None:
+                sheet_ranges['Z'+ str(row)].value = None
             else :
-                sheet_ranges['Z'+ str(row)].value = False
+                sheet_ranges['Z'+ str(row)].value = None
+            print(sheet_ranges['Z'+ str(row)].value)
+            wb.save(filepath)
 
         def sendSMS(): #envoi des sms aux contacts checker
             row_1 = 1
@@ -387,17 +397,20 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         ################################# Fin Fonction Pub ##############################################################
 
-    def RDV(): #fonction appeller par le bouton RDV du menu : gestion de tout les contacts RDV
-        label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
-        label['font'] = font.Font(size=20)
-        label.place(x=550, y=400, anchor="center")
-        fenetre.update()
-        filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
-        print(filepath)
+    def RDV(mod, file): #fonction appeller par le bouton RDV du menu : gestion de tout les contacts RDV
+        if mod :
+            filepath = file
+        else :
+            label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
+            label['font'] = font.Font(size=20)
+            label.place(x=550, y=400, anchor="center")
+            fenetre.update()
+            filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
+            print(filepath)
+            label.destroy()
         wb = load_workbook(filename = filepath)
         sheet_ranges = wb['Rappels pour participants lende']
         print(sheet_ranges['H18'].value)
-        label.destroy()
         root.geometry('1500x850')
         fenetre.width = 1500
 
@@ -422,12 +435,15 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         def check(row): #basculement de létat du contact lorsqu'il est checker pour faire suivre l'envoie des sms
             print("execute")
-            if sheet_ranges['Z'+ str(row)].value == None:
+            print(sheet_ranges['Z'+ str(row)].value)
+            if sheet_ranges['Z'+ str(row)].value != True:
                 sheet_ranges['Z'+ str(row)].value = True
-            elif sheet_ranges['Z'+ str(row)].value == True:
-                sheet_ranges['Z'+ str(row)].value = False
+            elif sheet_ranges['Z'+ str(row)].value != None:
+                sheet_ranges['Z'+ str(row)].value = None
             else :
-                sheet_ranges['Z'+ str(row)].value = False
+                sheet_ranges['Z'+ str(row)].value = None
+            print(sheet_ranges['Z'+ str(row)].value)
+            wb.save(filepath)
 
         def sendSMS(): #envoi des sms aux contacts checker
             row_1 = 1
@@ -467,7 +483,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             print(entre.get())
             sheet_ranges['I'+ str(row)] =  entre.get()
             wb.save(filename = filepath)
-            RDV()
+            RDV(True, filepath)
         def modif(row): #page de modif du numéro de téléphone lorsque incorrect
             Clear()
             label = Label(fenetre, text = "Modifier Numéro :", bg ="darkgoldenrod1")
@@ -478,7 +494,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             entree = Entry(fenetre, textvariable=vallue,bd = 10, width=30)
             entree['font'] = font.Font(size=20)
             entree.place(x=10, y=100)
-            bt1=Button(fenetre, text="ANNULER", command= RDV, bg = "cyan3")
+            bt1=Button(fenetre, text="ANNULER", command= partial(RDV, True, filepath), bg = "cyan3")
             bt1['font'] = font.Font(size=20)
             bt1.place(x=10, y=180)
             bt2=Button(fenetre, text="VALIDER", command= partial(valider, row, entree), bg = "cyan3")
@@ -544,7 +560,12 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             Label(frame,text=str(sheet_ranges['E'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=6, padx = 10)
             if checknum(row_1) == True :
                 Label(frame,text=str(sheet_ranges['I'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=2, padx = 10)
-                Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=7, padx = 10)
+                if sheet_ranges['Z'+ str(row_1)].value != None:
+                   btn= Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3')
+                   btn.select()
+                   btn.grid(row=i,column=7, padx = 10)
+                else :
+                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=7, padx = 10)
             else :
                 Label(frame,text=str(sheet_ranges['I'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg="red").grid(row=i,column=2, padx = 10)
                 photto = PhotoImage(file='./img/pencils.gif')
@@ -560,17 +581,20 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         ################################# Fin Fonction RDV ##############################################################
 
-    def parcours(): #fonction appeller par le bouton parcours du menu : gestion de tout les contacts parcours
-        label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
-        label['font'] = font.Font(size=20)
-        label.place(x=550, y=400, anchor="center")
-        fenetre.update()
-        filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
-        print(filepath)
+    def parcours(mod, file): #fonction appeller par le bouton parcours du menu : gestion de tout les contacts parcours
+        if mod :
+            filepath = file
+        else :
+            label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
+            label['font'] = font.Font(size=20)
+            label.place(x=550, y=400, anchor="center")
+            fenetre.update()
+            filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
+            print(filepath)
+            label.destroy()
         wb = load_workbook(filename = filepath)
         sheet_ranges = wb['Rappels pour participants lende']
         print(sheet_ranges['H18'].value)
-        label.destroy()
         root.geometry('1500x850')
         fenetre.width = 1500
 
@@ -640,7 +664,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             print(entre.get())
             sheet_ranges['I'+ str(row)] =  entre.get()
             wb.save(filename = filepath)
-            parcours()
+            parcours(True, filepath)
         def modif(row): #page de modif du numéro de téléphone lorsque incorrect
             Clear()
             label = Label(fenetre, text = "Modifier Numéro :", bg ="darkgoldenrod1")
@@ -651,7 +675,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             entree = Entry(fenetre, textvariable=vallue,bd = 10, width=30)
             entree['font'] = font.Font(size=20)
             entree.place(x=10, y=100)
-            bt1=Button(fenetre, text="ANNULER", command= parcours, bg = "cyan3")
+            bt1=Button(fenetre, text="ANNULER", command= partial(parcours, True, filepath) , bg = "cyan3")
             bt1['font'] = font.Font(size=20)
             bt1.place(x=10, y=180)
             bt2=Button(fenetre, text="VALIDER", command= partial(valider, row, entree), bg = "cyan3")
@@ -715,7 +739,12 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             Label(frame,text=str(sheet_ranges['K'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=5, padx = 10)
             if checknum(row_1) == True :
                 Label(frame,text=str(sheet_ranges['I'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=2, padx = 10)
-                Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=6, padx = 10)
+                if sheet_ranges['Z'+ str(row_1)].value != None:
+                   btn= Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3')
+                   btn.select()
+                   btn.grid(row=i,column=6, padx = 10)
+                else :
+                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=6, padx = 10)
             else :
                 Label(frame,text=str(sheet_ranges['I'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg="red").grid(row=i,column=2, padx = 10)
                 photto = PhotoImage(file='./img/pencils.gif')
