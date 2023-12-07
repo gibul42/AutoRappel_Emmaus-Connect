@@ -33,7 +33,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
         bt3=Button(fenetre, text="Rendez-vous", command=partial(RDV, False, None), bg  = "cadetblue2")
         bt3['font'] = font.Font(size=20)
         bt3.pack(pady = 20)
-        bt4=Button(fenetre, text="PUB", command= RDV, bg  = "crimson")
+        bt4=Button(fenetre, text="PUB", command= Pub, bg  = "crimson")
         bt4['font'] = font.Font(size=20)
         bt4.pack(pady = 20)
 
@@ -228,7 +228,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
         filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
         print(filepath)
         wb = load_workbook(filename = filepath)
-        sheet_ranges = wb['']
+        sheet_ranges = wb['Rapport inscription bénéficiair']
         print(sheet_ranges['H18'].value)
         label.destroy()
         root.geometry('1500x850')
@@ -239,7 +239,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         def checknum(row): #check de la validité du numéro de téléphone
             nb = 0
-            num = str(sheet_ranges['I'+ str(row_1)].value)
+            num = str(sheet_ranges['D'+ str(row_1)].value)
             for x in num :
                 if x in "0123456789":
                     if nb == 0 and x != "0" :
@@ -266,30 +266,11 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             wb.save(filepath)
 
         def sendSMS(): #envoi des sms aux contacts checker
-            row_1 = 1
-            row_2 = 0
-            while sheet_ranges['C'+ str(row_1)].value != "Permanence Connectée" and sheet_ranges['B'+ str(row_1)].value != "Total":
-                row_1 += 1
-
-            print(sheet_ranges['B'+ str(row_1)].value)
-            print(row_1)
-            if sheet_ranges['B'+ str(row_1)].value == "Total" :
-                print("pas de Pub")
-                Clear()
-                label = Label(fenetre, text="Pas de Pub", bg="cyan3")
-                label['font'] = font.Font(size=20)
-                label.place(x=750, y=400, anchor="center")
-                fenetre.update()
-                time.sleep(1)
-                menu()
-                return()
-
-            else :
-                row_2 = row_1 +1
-                print(sheet_ranges['C'+ str(row_2)].value)
-                while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
-                    print("ok")
-                    row_2 += 1
+            row_1 = 15
+            row_2 = 16
+            while sheet_ranges['B'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+                print("ok")
+                row_2 += 1
             print(row_2)
             while row_1 != row_2 :
                 print(sheet_ranges['Z'+ str(row_1)].value)
@@ -337,53 +318,43 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
         canvas3.pack(side="left")
         canvas3.create_window((0,0),window=frame,anchor='nw')
         frame.bind("<Configure>",myfunction)
-        row_1 = 1
-        row_2 = 0
+        row_1 = 15
+        row_2 = 16
         i = 1
 
         Label(frame,text="Nom", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=1, padx = 10)
         Label(frame,text="Numéro", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=2, padx = 10)
-        Label(frame,text="Date/Heure", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=4, padx = 10)
-        Label(frame,text="Statut", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=5, padx = 10)
-        while sheet_ranges['C'+ str(row_1)].value != "Permanence Connectée" and sheet_ranges['B'+ str(row_1)].value != "Total":
-            row_1 += 1
+        #
+        # print(sheet_ranges['B'+ str(row_1)].value)
+        # print(row_1)
+        # if sheet_ranges['B'+ str(row_1)].value == "Total" :
+        #     print("pas de Pub")
+        #     Clear()
+        #     label = Label(fenetre, text="Pas de Pub", bg="cyan3")
+        #     label['font'] = font.Font(size=20)
+        #     label.place(x=750, y=400, anchor="center")
+        #     fenetre.update()
+        #     time.sleep(1)
+        #     menu()
+        #     return()
 
-        print(sheet_ranges['B'+ str(row_1)].value)
-        print(row_1)
-        if sheet_ranges['B'+ str(row_1)].value == "Total" :
-            print("pas de Pub")
-            Clear()
-            label = Label(fenetre, text="Pas de Pub", bg="cyan3")
-            label['font'] = font.Font(size=20)
-            label.place(x=750, y=400, anchor="center")
-            fenetre.update()
-            time.sleep(1)
-            menu()
-            return()
-
-        else :
-            row_2 = row_1 +1
-            print(sheet_ranges['C'+ str(row_2)].value)
-            while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
-                print("ok")
-                row_2 += 1
+        while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+            print("ok")
+            row_2 += 1
         print(row_2)
 
         while row_1 != row_2 :
 
             Label(frame,text= str(i), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3", highlightbackground="cyan3").grid(row=i,column=0, padx = 10)
-            Label(frame,text=str(sheet_ranges['H'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=1, padx = 10)
-
-            Label(frame,text=str(sheet_ranges['F'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=4, padx = 10)
-            Label(frame,text=str(sheet_ranges['K'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=5, padx = 10)
+            Label(frame,text=str(sheet_ranges['B'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=1, padx = 10)
             if checknum(row_1) == True :
-                Label(frame,text=str(sheet_ranges['I'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=2, padx = 10)
+                Label(frame,text=str(sheet_ranges['D'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=2, padx = 10)
                 if sheet_ranges['Z'+ str(row_1)].value == True:
-                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=6, padx = 10).select()
+                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10).select()
                 else :
-                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=6, padx = 10)
+                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10)
             else :
-                Label(frame,text=str(sheet_ranges['I'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg="red").grid(row=i,column=2, padx = 10)
+                Label(frame,text=str(sheet_ranges['D'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg="red").grid(row=i,column=2, padx = 10)
                 photto = PhotoImage(file='./img/pencils.gif')
                 imgButton = Button(frame, image=photto, command=partial(modif, row_1))
                 imgButton.image = photto
@@ -619,13 +590,15 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         def check(row): #basculement de létat du contact lorsqu'il est checker pour faire suivre l'envoie des sms
             print("execute")
-            if sheet_ranges['Z'+ str(row)].value == None:
+            print(sheet_ranges['Z'+ str(row)].value)
+            if sheet_ranges['Z'+ str(row)].value != True:
                 sheet_ranges['Z'+ str(row)].value = True
-            elif sheet_ranges['Z'+ str(row)].value == True:
-                sheet_ranges['Z'+ str(row)].value = False
+            elif sheet_ranges['Z'+ str(row)].value != None:
+                sheet_ranges['Z'+ str(row)].value = None
             else :
-                sheet_ranges['Z'+ str(row)].value = False
-
+                sheet_ranges['Z'+ str(row)].value = None
+            print(sheet_ranges['Z'+ str(row)].value)
+            wb.save(filepath)
         def sendSMS(): #envoi des sms aux contacts checker
             row_1 = 1
             row_2 = 0
