@@ -33,7 +33,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
         bt3=Button(fenetre, text="Rendez-vous", command=partial(RDV, False, None), bg  = "cadetblue2")
         bt3['font'] = font.Font(size=20)
         bt3.pack(pady = 20)
-        bt4=Button(fenetre, text="PUB", command= Pub, bg  = "crimson")
+        bt4=Button(fenetre, text="PUB", command=partial(Pub, False, None), bg  = "crimson")
         bt4['font'] = font.Font(size=20)
         bt4.pack(pady = 20)
 
@@ -220,17 +220,21 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         ################################# Fin Fonction PERMCO ##############################################################
 
-    def Pub():#fonction appeller par le bouton Pub du menu : gestion de tout les contacts Pub
-        label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
-        label['font'] = font.Font(size=20)
-        label.place(x=550, y=400, anchor="center")
-        fenetre.update()
-        filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
-        print(filepath)
+    def Pub(mod, file):#fonction appeller par le bouton Pub du menu : gestion de tout les contacts Pub
+        if mod :
+            filepath = file
+        else :
+            label = Label(fenetre, text="Selectionné un fichier de contact (.xlsx)", bg="cyan3")
+            label['font'] = font.Font(size=20)
+            label.place(x=550, y=400, anchor="center")
+            fenetre.update()
+            filepath = askopenfilename(title="Ouvrir le fichier de rappelle",filetypes=[('xlsx file','.xlsx'),('all files','.*')])
+            print(filepath)
+            label.destroy()
         wb = load_workbook(filename = filepath)
         sheet_ranges = wb['Rapport inscription bénéficiair']
         print(sheet_ranges['H18'].value)
-        label.destroy()
+
         root.geometry('1500x850')
         fenetre.width = 1500
 
@@ -284,7 +288,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             print(entre.get())
             sheet_ranges['I'+ str(row)] =  entre.get()
             wb.save(filename = filepath)
-            Pub()
+            Pub(True , filepath)
         def modif(row): #page de modif du numéro de téléphone lorsque incorrect
             Clear()
             label = Label(fenetre, text = "Modifier Numéro :", bg ="darkgoldenrod1")
@@ -295,15 +299,12 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             entree = Entry(fenetre, textvariable=vallue,bd = 10, width=30)
             entree['font'] = font.Font(size=20)
             entree.place(x=10, y=100)
-            bt1=Button(fenetre, text="ANNULER", command= Pub, bg = "cyan3")
+            bt1=Button(fenetre, text="ANNULER", command= partial(Pub,True , filepath), bg = "cyan3")
             bt1['font'] = font.Font(size=20)
             bt1.place(x=10, y=180)
             bt2=Button(fenetre, text="VALIDER", command= partial(valider, row, entree), bg = "cyan3")
             bt2['font'] = font.Font(size=20)
             bt2.place(x=250, y=180)
-
-
-
 
         Clear()
         myframe=Frame(fenetre,relief=GROOVE,width=1480,height=700,bd=1, bg= "cyan3")
@@ -324,6 +325,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         Label(frame,text="Nom", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=1, padx = 10)
         Label(frame,text="Numéro", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=2, padx = 10)
+        bt1=Button(frame, text="Select All", command=partial(Pub), bg  = "darkorange2").grid(row=0,column=3, padx = 10)
         #
         # print(sheet_ranges['B'+ str(row_1)].value)
         # print(row_1)
@@ -350,7 +352,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             if checknum(row_1) == True :
                 Label(frame,text=str(sheet_ranges['D'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=2, padx = 10)
                 if sheet_ranges['Z'+ str(row_1)].value == True:
-                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10).select()
+                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10)
                 else :
                     Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10)
             else :
@@ -360,12 +362,28 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
                 imgButton.image = photto
                 imgButton.grid(row=i,column=3)
             i +=1
+            print(sheet_ranges['Z'+ str(row_1)].value)
+            print(sheet_ranges['D'+ str(row_1)].value)
+            service.send_message(str(sheet_ranges['D'+ str(row_1)].value), "Bonjour, L'équipe d'Emmaus Connect vous rappelle votre Permanence Connectée le "+str( sheet_ranges['F'+ str(row_1)].value)[:-5]+ " à "+ str( sheet_ranges['F'+ str(row_1)].value)[-5:] +" au 104 route de Vienne, 69008 Lyon. \n\n Merci de nous prévenir en cas d'abscence en appelant le 01 80 05 98 80. \n\n L'équipe Emmaus Connect")
+
             row_1 += 1
 
         bt=Button(fenetre, text="validé", command = sendSMS)
         bt['font'] = font.Font(size=20)
         bt.place(x=750, y=750, anchor="center")
+        row_1 = 15
+        row_2 = 16
+        while sheet_ranges['B'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+            print("ok")
+            row_2 += 1
+        print(row_2)
+        while row_1 != row_2 :
+            print(sheet_ranges['Z'+ str(row_1)].value)
+            if sheet_ranges['Z'+ str(row_1)].value == True :
+                service.send_message(str(sheet_ranges['I'+ str(row_1)].value), "Bonjour, L'équipe d'Emmaus Connect vous rappelle votre Permanence Connectée le "+str( sheet_ranges['F'+ str(row_1)].value)[:-5]+ " à "+ str( sheet_ranges['F'+ str(row_1)].value)[-5:] +" au 104 route de Vienne, 69008 Lyon. \n\n Merci de nous prévenir en cas d'abscence en appelant le 01 80 05 98 80. \n\n L'équipe Emmaus Connect")
 
+            row_1 += 1
+        menu()
         ################################# Fin Fonction Pub ##############################################################
 
     def RDV(mod, file): #fonction appeller par le bouton RDV du menu : gestion de tout les contacts RDV
