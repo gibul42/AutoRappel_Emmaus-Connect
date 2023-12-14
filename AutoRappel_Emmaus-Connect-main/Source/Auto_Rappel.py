@@ -233,7 +233,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             label.destroy()
         wb = load_workbook(filename = filepath)
         try :
-            sheet_ranges = wb['Rapport inscription bénéficiair']
+            sheet_ranges = wb['Beneficiaires 3 dernier mois']
         except :
             print("erreur")
             Clear()
@@ -289,7 +289,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             while row_1 != row_2 :
                 print(sheet_ranges['Z'+ str(row_1)].value)
                 if sheet_ranges['Z'+ str(row_1)].value == True :
-                    service.send_message(str(sheet_ranges['D'+ str(row_1)].value), "Bonjour, "+str(row_1))
+                    service.send_message(str(sheet_ranges['D'+ str(row_1)].value), "Bonjour,\nVous souhaitez apprendre à mieux vous déplacer avec votre smartphone avec googlemaps, mappy...? La permanence thématique d'Emmaüs Connect est faite pour vous ! Rejoignez-nous le mardi 19 décembre de 14h à 17h. \n\nVous souhaitez créer ou apprendre à gérer votre boîte mail ? Nous vous attendons le mercredi 20 décembre de 11h à 13h.\n \nVous voudriez acheter en ligne mais vous avez peur des arnaques ? Venez parler sécurité avec nous le mercredi 17 Janvier de 14h à 17h.\n\nComment faire pour s'inscrire ? Appeler le 01 80 05 98 80 ou directement à l'accueil d'Emmaüs Connect sur nos horaires d'ouverture au 104 route de Vienne 69008 Lyon.\n\nL'équipe Emmaüs Connect." )
 
                 row_1 += 1
             menu()
@@ -315,7 +315,42 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             bt2=Button(fenetre, text="VALIDER", command= partial(valider, row, entree), bg = "cyan3")
             bt2['font'] = font.Font(size=20)
             bt2.place(x=250, y=180)
-
+        def select():
+            row_1 = 15
+            row_2 = 16
+            while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+                print("ok")
+                row_2 += 1
+            print(row_2)
+            while row_1 != row_2 :
+                sheet_ranges['Z'+ str(row_1)].value = True
+                wb.save(filepath)
+                row_1 += 1
+            Pub(True, filepath)
+        def unselect():
+            row_1 = 15
+            row_2 = 16
+            while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+                print("ok")
+                row_2 += 1
+            print(row_2)
+            while row_1 != row_2 :
+                sheet_ranges['Z'+ str(row_1)].value = None
+                wb.save(filepath)
+                row_1 += 1
+            Pub(True, filepath)
+        def choose():
+            row_1 = 15
+            row_2 = 16
+            while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+                print("ok")
+                row_2 += 1
+            print(row_2)
+            while row_1 != row_2 :
+                if sheet_ranges['Z'+ str(row_1)].value != True :
+                    return(True)
+                row_1 += 1
+            return(False)
         Clear()
         myframe=Frame(fenetre,relief=GROOVE,width=1480,height=700,bd=1, bg= "cyan3")
         myframe.place(x=10,y=50)
@@ -335,7 +370,10 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
         Label(frame,text="Nom", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=1, padx = 10)
         Label(frame,text="Numéro", font = ("Comic Sans MS", 20, "bold"), bg ="darkgoldenrod1").grid(row=0,column=2, padx = 10)
-        bt1=Button(frame, text="Select All", command=partial(Pub), bg  = "darkorange2").grid(row=0,column=3, padx = 10)
+        if choose() :
+            bt1=Button(frame, text="Select All", command=select, bg  = "darkorange2").grid(row=0,column=3, padx = 10)
+        else :
+            bt1=Button(frame, text="Deselect All", command=unselect, bg  = "darkorange2").grid(row=0,column=3, padx = 10)
         #
         # print(sheet_ranges['B'+ str(row_1)].value)
         # print(row_1)
@@ -364,9 +402,9 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
                 if sheet_ranges['Z'+ str(row_1)].value != None:
                    btn= Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3')
                    btn.select()
-                   btn.grid(row=i,column=7, padx = 10)
+                   btn.grid(row=i,column=3, padx = 10)
                 else :
-                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=7, padx = 10)
+                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10)
             else :
                 Label(frame,text=str(sheet_ranges['D'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg="red").grid(row=i,column=2, padx = 10)
                 photto = PhotoImage(file='./img/pencils.gif')
