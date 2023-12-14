@@ -24,7 +24,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
 
     def menu():# definition du menu : choix permCo parcours ou rdv
         Clear()
-        bt1=Button(fenetre, text="Permanence connecté", command=partial(Permco, False, None), bg  = "darkorange2")
+        bt1=Button(fenetre, text="Permanence connectée", command=partial(Permco, False, None), bg  = "darkorange2")
         bt1['font'] = font.Font(size=20)
         bt1.pack(pady = 20)
         bt2=Button(fenetre, text="Parcours d'initiation", command =partial(parcours, False, None), bg  = "darkgoldenrod1")
@@ -232,7 +232,17 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             print(filepath)
             label.destroy()
         wb = load_workbook(filename = filepath)
-        sheet_ranges = wb['Rapport inscription bénéficiair']
+        try :
+            sheet_ranges = wb['Rapport inscription bénéficiair']
+        except :
+            print("erreur")
+            Clear()
+            label = Label(fenetre, text="Erreur, choisissez un autre fichier.", bg="cyan3")
+            label['font'] = font.Font(size=20)
+            label.place(x=550, y=400, anchor="center")
+            fenetre.update()
+            time.sleep(1)
+            menu()
         print(sheet_ranges['H18'].value)
 
         root.geometry('1500x850')
@@ -272,21 +282,21 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
         def sendSMS(): #envoi des sms aux contacts checker
             row_1 = 15
             row_2 = 16
-            while sheet_ranges['B'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+            while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
                 print("ok")
                 row_2 += 1
             print(row_2)
             while row_1 != row_2 :
                 print(sheet_ranges['Z'+ str(row_1)].value)
                 if sheet_ranges['Z'+ str(row_1)].value == True :
-                    service.send_message(str(sheet_ranges['I'+ str(row_1)].value), "Bonjour, L'équipe d'Emmaus Connect vous rappelle votre Permanence Connectée le "+str( sheet_ranges['F'+ str(row_1)].value)[:-5]+ " à "+ str( sheet_ranges['F'+ str(row_1)].value)[-5:] +" au 104 route de Vienne, 69008 Lyon. \n\n Merci de nous prévenir en cas d'abscence en appelant le 01 80 05 98 80. \n\n L'équipe Emmaus Connect")
+                    service.send_message(str(sheet_ranges['D'+ str(row_1)].value), "Bonjour, "+str(row_1))
 
                 row_1 += 1
             menu()
 
         def valider(row, entre): #validation des changement du numéro de tel
             print(entre.get())
-            sheet_ranges['I'+ str(row)] =  entre.get()
+            sheet_ranges['D'+ str(row)] =  entre.get()
             wb.save(filename = filepath)
             Pub(True , filepath)
         def modif(row): #page de modif du numéro de téléphone lorsque incorrect
@@ -295,7 +305,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             label['font'] = font.Font(size=20)
             label.place(x=10, y=10)
             vallue = StringVar()
-            vallue.set(str(sheet_ranges['I'+ str(row)].value))
+            vallue.set(str(sheet_ranges['D'+ str(row)].value))
             entree = Entry(fenetre, textvariable=vallue,bd = 10, width=30)
             entree['font'] = font.Font(size=20)
             entree.place(x=10, y=100)
@@ -340,7 +350,7 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
         #     menu()
         #     return()
 
-        while sheet_ranges['C'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
+        while sheet_ranges['B'+ str(row_2)].value != None and sheet_ranges['B'+ str(row_2)].value != "Total":
             print("ok")
             row_2 += 1
         print(row_2)
@@ -351,10 +361,12 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
             Label(frame,text=str(sheet_ranges['B'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=1, padx = 10)
             if checknum(row_1) == True :
                 Label(frame,text=str(sheet_ranges['D'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg ="cyan3").grid(row=i,column=2, padx = 10)
-                if sheet_ranges['Z'+ str(row_1)].value == True:
-                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10)
+                if sheet_ranges['Z'+ str(row_1)].value != None:
+                   btn= Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3')
+                   btn.select()
+                   btn.grid(row=i,column=7, padx = 10)
                 else :
-                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=3, padx = 10)
+                    Checkbutton(frame, text='Rappel',  font = ("Comic Sans MS", 15, "bold"), command=partial(check , row_1), bg ='cyan3').grid(row=i,column=7, padx = 10)
             else :
                 Label(frame,text=str(sheet_ranges['D'+ str(row_1)].value), font = ("Comic Sans MS", 15, "bold"), bg="red").grid(row=i,column=2, padx = 10)
                 photto = PhotoImage(file='./img/pencils.gif')
@@ -362,28 +374,13 @@ def connexion(entree): #function de connexion au service airmore et fonction sec
                 imgButton.image = photto
                 imgButton.grid(row=i,column=3)
             i +=1
-            print(sheet_ranges['Z'+ str(row_1)].value)
-            print(sheet_ranges['D'+ str(row_1)].value)
-            service.send_message(str(sheet_ranges['D'+ str(row_1)].value), "Bonjour, L'équipe d'Emmaus Connect vous rappelle votre Permanence Connectée le "+str( sheet_ranges['F'+ str(row_1)].value)[:-5]+ " à "+ str( sheet_ranges['F'+ str(row_1)].value)[-5:] +" au 104 route de Vienne, 69008 Lyon. \n\n Merci de nous prévenir en cas d'abscence en appelant le 01 80 05 98 80. \n\n L'équipe Emmaus Connect")
 
             row_1 += 1
 
         bt=Button(fenetre, text="validé", command = sendSMS)
         bt['font'] = font.Font(size=20)
         bt.place(x=750, y=750, anchor="center")
-        row_1 = 15
-        row_2 = 16
-        while sheet_ranges['B'+ str(row_2)].value == None and sheet_ranges['B'+ str(row_2)].value != "Total":
-            print("ok")
-            row_2 += 1
-        print(row_2)
-        while row_1 != row_2 :
-            print(sheet_ranges['Z'+ str(row_1)].value)
-            if sheet_ranges['Z'+ str(row_1)].value == True :
-                service.send_message(str(sheet_ranges['I'+ str(row_1)].value), "Bonjour, L'équipe d'Emmaus Connect vous rappelle votre Permanence Connectée le "+str( sheet_ranges['F'+ str(row_1)].value)[:-5]+ " à "+ str( sheet_ranges['F'+ str(row_1)].value)[-5:] +" au 104 route de Vienne, 69008 Lyon. \n\n Merci de nous prévenir en cas d'abscence en appelant le 01 80 05 98 80. \n\n L'équipe Emmaus Connect")
 
-            row_1 += 1
-        menu()
         ################################# Fin Fonction Pub ##############################################################
 
     def RDV(mod, file): #fonction appeller par le bouton RDV du menu : gestion de tout les contacts RDV
